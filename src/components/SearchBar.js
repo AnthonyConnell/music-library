@@ -1,19 +1,30 @@
-import { useState } from 'react'
+import React, { useContext } from "react";
+import { SearchContext } from "../context/SearchContext";
+import Form from 'react-bootstrap/Form'
+import Button from 'react-bootstrap/Button'
+import InputGroup from 'react-bootstrap/InputGroup'
 
-function SearchBar(props) {
-    let [searchTerm, setSearchTerm] = useState('')
+function SearchBar() {
+	let {term, handleSearch} = useContext(SearchContext);
 
-    return (
-        <form onSubmit={(e) => props.handleSearch(e, searchTerm)}>
+	return (
+		<Form>
+			<Form.Group controlId="search">
+				<InputGroup>
+					<Form.Control placeholder='Search for your favorite song' ref={term}/>
+					<Button 
+						variant='primary'
+						type='button'
+						onClick={(e) => {handleSearch(e, term.current.value)}}
+					>
+						Submit
+					</Button>
 
-            <input type="text" placeholder="Enter a search term here" onChange={
-                (e) => setSearchTerm(e.target.value)
-            } />
+				</InputGroup>
+			</Form.Group>
 
-            <input type="submit" />
-
-        </form>
-    )
+		</Form>
+	)
 }
 
 export default SearchBar

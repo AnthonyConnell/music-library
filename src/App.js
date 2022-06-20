@@ -1,56 +1,68 @@
-import { useEffect, useState } from 'react'
+import React, { useState, useRef, Fragment } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import Gallery from './components/Gallery'
-import SearchBar from './components/SearchBar'
-import AlbumView from './components/AlbumView'
-import ArtistView from './components/ArtistView'
-import { Fragment } from 'react/cjs/react.production.min'
+import './App.css';
+import Gallery from './components/Gallery';
+import SearchBar from './components/SearchBar';
+import AlbumView from './components/AlbumView';
+import ArtistView from './components/ArtistView';
+import SongView from './components/SongView';
+import { DataContext } from './context/DataContext';
+import { SearchContext } from './context/SearchContext';
 
 function App() {
-	let [search, setSearch] = useState('')
-	let [message, setMessage] = useState('Search for Music!')
-	let [data, setData] = useState()
+	let [data, setData] = useState([]);
+	let [message, setMessage] = useState("Search for music!");
 
-	const API_URL = 'https://itunes.apple.com/search?term='
+	let searchInput = useRef('')
 
-	useEffect(() => {
-		if(search) {
-			const fetchData = async () => {
-				document.title = `${search} Music`
-				const response = await fetch(API_URL + search)
-				const resData = await response.json()
-				if (resData.results.length > 0) {
-					return setData(resData.results)
-				} else {
-					return setMessage('Not Found')
-				}
-			}
-			fetchData()
-		}
-	}, [search])
-	
 	const handleSearch = (e, term) => {
 		e.preventDefault()
-		setSearch(term)
+
+		const fetchData = async () => {
+			if (term) {
+				document.title = `${term} Music`
+				const response = await fetch(`https://itunes.apple.com/search?term=` + term)
+				const resData = await response.json()
+				
+				if (resData.results.length > 0) {
+					setData(resData.results)
+					
+				} else {
+					setMessage('Not found')
+				}
+			}
+		}
+
+		fetchData()
 	}
 
 	return (
-		<div>
+		<div className="App">
 			{message}
 			<Router>
 				<Routes>
 					<Route path="/" element={
 						<Fragment>
-							<SearchBar handleSearch = {handleSearch}/>
-							<Gallery data={data} />
+							<SearchContext.Provider value={{
+								term: searchInput,
+								handleSearch: handleSearch
+							}}>
+								<SearchBar />
+							</SearchContext.Provider>
+
+							<DataContext.Provider value={data}>
+								<Gallery data={data}/>
+							</DataContext.Provider>
 						</Fragment>
 					} />
+
 					<Route path="/album/:id" element={<AlbumView />} />
 					<Route path="/artist/:id" element={<ArtistView />} />
+					<Route path="/song/:id" element={<SongView />} />
 				</Routes>
 			</Router>
 		</div>
-  	);
+	);
 }
 
 export default App;
